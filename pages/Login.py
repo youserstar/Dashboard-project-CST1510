@@ -21,19 +21,31 @@ if not st.session_state.get('logged_in', False):
         
         if submit:
             if username and password:
-                # password has for vertification
-                password_bytes = password.encode('utf-8')
-                user = db.verify_user(username, password)
-                
-                if user:
-                    st.session_state.logged_in = True
-                    st.session_state.username = user[0]
-                    st.session_state.role = user[1]
-                    st.success(f"Welcome {username}!")
-                    st.balloons()
-                    st.rerun()
-                else:
-                    st.error("Invalid username or password")
+                try:
+                    # Get user from database
+                    db.connect()
+                    query = "SELECT username, password_hash, role FROM users WHERE username = ?"
+                    result = db.cursor.execute(query, (username,)).fetchone()
+                    db.close()
+                    
+                    if result:
+                        stored_username, stored_hash, role = result
+                        
+                        # Verify password using bcrypt
+                        if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+                            st.session_state.logged_in = True
+                            st.session_state.username = stored_username
+                            st.session_state.role = role
+                            st.success(f"Welcome {username}!")
+                            st.balloons()
+                            st.rerun()
+                        else:
+                            st.error("Invalid username or password")
+                    else:
+                        st.error("Invalid username or password")
+                except Exception as e:
+                    st.error(f"Login error: {str(e)}")
+                    st.info("Make sure the database is set up correctly.")
             else:
                 st.warning("Please enter both username and password")
     
