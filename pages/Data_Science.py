@@ -7,6 +7,9 @@ sys.path.append('..')
 from database import DatabaseManager
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
+
 st.set_page_config(page_title="Data Science Dashboard", page_icon="📊", layout="wide")
 
 # Check login
@@ -229,7 +232,7 @@ with st.expander("Get AI-Powered Data Management Insights"):
     
     if st.button("Get AI Advice"):
         if user_question:
-            api_key = os.getenv(OPENAI_API_KEY="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")
+            api_key = os.getenv('OPENAI_API_KEY')
             
             if not api_key:
                 st.warning("""
